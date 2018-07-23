@@ -16,7 +16,7 @@ spec:
         imagePullPolicy: Always
         env:
           - name: gateway_url
-            value: "http://faas-netesd-external.openfaas:8080/"
+            value: "http://gateway.openfaas:8080/"
           - name: prometheus_host
             value: "prometheus.openfaas"
           - name: prometheus_port
