@@ -95,7 +95,12 @@ func buildMetricsMap(client *http.Client, functions []requests.Function, prometh
 							log.Printf("Unable to convert value for metric: %s\n", strconvErr)
 							continue
 						}
-						metrics[function.Name] = f
+						if _, exists := metrics[function.Name]; !exists {
+							metrics[function.Name] = 0
+						}
+
+						metrics[function.Name] = metrics[function.Name] + f
+
 						break
 					}
 				}
