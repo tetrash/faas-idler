@@ -89,19 +89,18 @@ func buildMetricsMap(client *http.Client, functions []requests.Function, prometh
 					metricValue := v.Value[1]
 					switch metricValue.(type) {
 					case string:
-						// log.Println("String")
+
 						f, strconvErr := strconv.ParseFloat(metricValue.(string), 64)
 						if strconvErr != nil {
 							log.Printf("Unable to convert value for metric: %s\n", strconvErr)
 							continue
 						}
+
 						if _, exists := metrics[function.Name]; !exists {
 							metrics[function.Name] = 0
 						}
 
 						metrics[function.Name] = metrics[function.Name] + f
-
-						break
 					}
 				}
 			}
