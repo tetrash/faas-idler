@@ -25,16 +25,6 @@ func main() {
 	flag.BoolVar(&dryRun, "dry-run", false, "use dry-run for scaling events")
 	flag.Parse()
 
-	frequency, freqExist := os.LookupEnv("reconcile_interval")
-	if freqExist == false {
-		frequency = "30s"
-	}
-
-	reconcileInterval, intervalErr := time.ParseDuration(frequency)
-	if intervalErr != nil {
-		log.Println(intervalErr)
-	}
-
 	gatewayURL := os.Getenv("gateway_url")
 	prometheusHost := os.Getenv("prometheus_host")
 
@@ -62,6 +52,15 @@ func main() {
 			log.Panicln(parseErr)
 		}
 		prometheusPort = port
+	}
+
+	reconcileInterval := time.Second * 30
+	if val, exists := os.LookupEnv("reconcile_interval"); exists {
+		parsedVal, parseErr := time.ParseDuration(val)
+		if parseErr != nil {
+			log.Printf("error parsing reconcile_interval: %s\n", parseErr.Error())
+		}
+		reconcileInterval = parsedVal
 	}
 
 	fmt.Printf(`dry_run: %t
