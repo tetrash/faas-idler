@@ -27,26 +27,33 @@ func main() {
 
 	reconcileInterval := time.Second * 30
 
-	client := &http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
 	prometheusHost := os.Getenv("prometheus_host")
-	inactivityDurationVal := os.Getenv("inactivity_duration")
 
-	if len(inactivityDurationVal) == 0 {
-		inactivityDurationVal = "10m"
+	if len(gatewayURL) == 0 {
+		log.Panic("env-var gateway_url must be set")
 	}
 
-	inactivityDuration, _ := time.ParseDuration(inactivityDurationVal)
+	if len(prometheusHost) == 0 {
+		log.Panic("env-var prometheus_host must be set")
+	}
 
-	prometheusPortVal := os.Getenv("prometheus_port")
-
-	var prometheusPort int
-	if len(prometheusPortVal) > 0 {
-		var err error
-		prometheusPort, err = strconv.Atoi(prometheusPortVal)
-		if err != nil {
-			log.Panicln(err)
+	inactivityDuration := time.Minute * 5
+	if val, exists := os.LookupEnv("inactivity_duration"); exists {
+		parsedVal, parseErr := time.ParseDuration(val)
+		if parseErr != nil {
+			log.Printf("error parsing inactivity_duration: %s\n", parseErr.Error())
 		}
+		inactivityDuration = parsedVal
+	}
+
+	prometheusPort := 9090
+	if val, exists := os.LookupEnv("prometheus_port"); exists {
+		port, parseErr := strconv.Atoi(val)
+		if parseErr != nil {
+			log.Panicln(parseErr)
+		}
+		prometheusPort = port
 	}
 
 	fmt.Printf(`dry_run: %t
@@ -58,6 +65,7 @@ inactivity_duration: %s `, dryRun, gatewayURL, inactivityDuration)
 		os.Exit(1)
 	}
 
+	client := &http.Client{}
 	for {
 
 		reconcile(client, gatewayURL, prometheusHost, prometheusPort, inactivityDuration)

@@ -21,6 +21,22 @@ TAG=0.1.1 make push
 
 ## Usage
 
+### Quick start
+
+Swarm:
+
+```
+docker stack deploy func -c docker-compose.yml
+```
+
+Kubernetes
+
+```
+kubectl apply -f faas-idler-dep.yml
+```
+
+### Configuration
+
 * Environmental variables:
 
 On Kubernetes the `gateway_url` needs to contain the suffix of the namespace you picked at deploy time. This is usually `.openfaas` and is pre-configured with a default.
