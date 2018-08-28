@@ -1,5 +1,7 @@
 # faas-idler
 
+[![Build Status](https://travis-ci.org/openfaas-incubator/faas-idler.svg?branch=master)]
+
 Scale OpenFaaS functions to zero replicas after a period of inactivity
 
 > Premise: functions (Deployments) can be scaled to 0/0 replicas from 1/1 or N/N replicas when they are not receiving traffic. Traffic is observed from Prometheus metrics collected in the OpenFaaS API Gateway.
