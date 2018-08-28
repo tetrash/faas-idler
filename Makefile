@@ -2,6 +2,6 @@ TAG?=latest-dev
 .PHONY: build
 
 build:
-	docker build -t alexellis/faas-idler:${TAG} .
+	docker build -t openfaas/faas-idler:${TAG} .
 push:
-	docker push alexellis/faas-idler:${TAG}
+	docker push openfaas/faas-idler:${TAG}
