@@ -33,6 +33,16 @@ func main() {
 
 	credentials := Credentials{}
 	gatewayURL := os.Getenv("gateway_url")
+
+	client := &http.Client{}
+	version, err := getVersion(client, gatewayURL, &credentials)
+
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("Gateway version: %s\n", version.Release)
+
 	prometheusHost := os.Getenv("prometheus_host")
 
 	if len(gatewayURL) == 0 {
@@ -93,7 +103,6 @@ inactivity_duration: %s `, dryRun, gatewayURL, inactivityDuration)
 		os.Exit(1)
 	}
 
-	client := &http.Client{}
 	for {
 
 		reconcile(client, gatewayURL, prometheusHost, prometheusPort, inactivityDuration, &credentials)
@@ -258,4 +267,31 @@ func sendScaleEvent(client *http.Client, gatewayURL string, name string, replica
 	if res.Body != nil {
 		defer res.Body.Close()
 	}
+}
+
+type Version struct {
+	Release string
+}
+
+func getVersion(client *http.Client, gatewayURL string, credentials *Credentials) (Version, error) {
+	version := Version{}
+	var err error
+
+	req, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/info", nil)
+	req.SetBasicAuth(credentials.Username, credentials.Password)
+
+	res, err := client.Do(req)
+	if err != nil {
+		return version, err
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	bytesOut, _ := ioutil.ReadAll(res.Body)
+
+	err = json.Unmarshal(bytesOut, &version)
+
+	return version, err
 }
