@@ -19,7 +19,6 @@ COPY --from=builder /usr/bin/faas-idler /home/app/
 RUN chown -R app /home/app
 USER app
 
-
 EXPOSE 8080
 VOLUME /tmp
 

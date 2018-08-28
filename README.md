@@ -15,15 +15,15 @@ faas-idler is implemented as a controller which polls Prometheus metrics on a re
 The build requires Docker and builds a local Docker image.
 
 ```
-TAG=0.1.0 make build
-TAG=0.1.0 make push
+TAG=0.1.1 make build
+TAG=0.1.1 make push
 ```
 
 ## Usage
 
 * Environmental variables:
 
-gateway_url needs to be the URL of the faas-netes or faas-swarm service, which usually has no port exposed.
+On Kubernetes the `gateway_url` needs to contain the suffix of the namespace you picked at deploy time. This is usually `.openfaas` and is pre-configured with a default.
 
 Try using the ClusterIP/Cluster Service instead and port 8080.
 
