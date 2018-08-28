@@ -1,7 +1,7 @@
 version: "3.3"
 services:
     faas-idler:
-        image: openfaas/faas-idler:0.1.6
+        image: openfaas/faas-idler:0.1.7
         networks:
             - func_functions
         environment:
@@ -10,7 +10,7 @@ services:
             prometheus_port: "9090"
             inactivity_duration: "5m"
             reconcile_interval: "30s"
-        command: "-dry-run=true"
+        command: "-dry-run=false"
         deploy:
             resources:
                 limits:   # Enable if you want to limit memory usage

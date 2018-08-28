@@ -19,6 +19,8 @@ import (
 	"github.com/openfaas/faas/gateway/requests"
 )
 
+const scaleLabel = "com.openfaas.scale.zero"
+
 var dryRun bool
 
 type Credentials struct {
@@ -176,6 +178,16 @@ func reconcile(client *http.Client, gatewayURL, prometheusHost string, prometheu
 	metrics := buildMetricsMap(client, functions, prometheusHost, prometheusPort, inactivityDuration)
 
 	for _, fn := range functions {
+		if fn.Labels != nil {
+			labels := *fn.Labels
+			labelValue := labels[scaleLabel]
+
+			if labelValue != "1" && labelValue != "true" {
+				log.Printf("Skip: %s due to missing label\n", fn.Name)
+				continue
+			}
+		}
+
 		if v, found := metrics[fn.Name]; found {
 			if v == float64(0) {
 				fmt.Printf("%s\tidle\n", fn.Name)

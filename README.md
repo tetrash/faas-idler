@@ -15,8 +15,8 @@ faas-idler is implemented as a controller which polls Prometheus metrics on a re
 The build requires Docker and builds a local Docker image.
 
 ```
-TAG=0.1.1 make build
-TAG=0.1.1 make push
+TAG=0.1.7 make build
+TAG=0.1.7 make push
 ```
 
 ## Usage
@@ -33,6 +33,12 @@ Kubernetes
 
 ```
 kubectl apply -f faas-idler-dep.yml
+```
+
+Now decorate some functions with the label: `com.openfaas.scale.zero: true` and watch the idler scale them to zero. You should also change the `-dry-run` flag to `false`. For example:
+
+```
+faas-cli store deploy figlet --label "com.openfaas.scale.zero=true"
 ```
 
 ### Configuration
