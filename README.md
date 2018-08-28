@@ -47,8 +47,8 @@ Try using the ClusterIP/Cluster Service instead and port 8080.
 `prometheus_host` - host for Prometheus
 `prometheus_port` - port for Prometheus
 `inactivity_duration` - i.e. `10m` (Golang duration)
+`reconcile_interval` - i.e. `30s` (default value)
 
-The `reconcileInterval` is hard-coded to run every 30s.
 
 * Command-line args
 

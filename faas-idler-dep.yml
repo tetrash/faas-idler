@@ -23,6 +23,8 @@ spec:
             value: "9090"
           - name: inactivity_duration
             value: "5m"
+          - name: reconcile_interval
+            value: "30s"
         command:
           - /home/app/faas-idler
           - -dry-run=true

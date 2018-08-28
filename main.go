@@ -25,7 +25,15 @@ func main() {
 	flag.BoolVar(&dryRun, "dry-run", false, "use dry-run for scaling events")
 	flag.Parse()
 
-	reconcileInterval := time.Second * 30
+	frequency, freqExist := os.LookupEnv("reconcile_interval")
+	if freqExist == false {
+		frequency = "30s"
+	}
+
+	reconcileInterval, intervalErr := time.ParseDuration(frequency)
+	if intervalErr != nil {
+		log.Println(intervalErr)
+	}
 
 	gatewayURL := os.Getenv("gateway_url")
 	prometheusHost := os.Getenv("prometheus_host")
