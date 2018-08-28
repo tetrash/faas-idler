@@ -53,14 +53,14 @@ func main() {
 		log.Panic("env-var prometheus_host must be set")
 	}
 
-	val, err := readFile("/run/secrets/basic-auth-user")
+	val, err := readFile("/var/secrets/basic-auth-user")
 	if err == nil {
 		credentials.Username = val
 	} else {
 		log.Printf("Unable to read username: %s", err)
 	}
 
-	passwordVal, passErr := readFile("/run/secrets/basic-auth-password")
+	passwordVal, passErr := readFile("/var/secrets/basic-auth-password")
 	if passErr == nil {
 		credentials.Password = passwordVal
 	} else {
