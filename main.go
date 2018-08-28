@@ -41,7 +41,7 @@ func main() {
 		panic(err)
 	}
 
-	log.Printf("Gateway version: %s\n", version.Release)
+	log.Printf("Gateway version: %s, SHA: %s\n", version.Version.Release, version.Version.SHA)
 
 	prometheusHost := os.Getenv("prometheus_host")
 
@@ -270,7 +270,10 @@ func sendScaleEvent(client *http.Client, gatewayURL string, name string, replica
 }
 
 type Version struct {
-	Release string
+	Version struct {
+		Release string `json:"release"`
+		SHA     string `json:"sha"`
+	}
 }
 
 func getVersion(client *http.Client, gatewayURL string, credentials *Credentials) (Version, error) {
