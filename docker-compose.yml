@@ -9,6 +9,7 @@ services:
             prometheus_host: "prometheus"
             prometheus_port: "9090"
             inactivity_duration: "5m"
+            reconcile_interval: "30s"
         command: "-dry-run=true"
         deploy:
             resources:
