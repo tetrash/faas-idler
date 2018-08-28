@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	providerTypes "github.com/openfaas/faas-provider/types"
@@ -20,11 +21,17 @@ import (
 
 var dryRun bool
 
+type Credentials struct {
+	Username string
+	Password string
+}
+
 func main() {
 
 	flag.BoolVar(&dryRun, "dry-run", false, "use dry-run for scaling events")
 	flag.Parse()
 
+	credentials := Credentials{}
 	gatewayURL := os.Getenv("gateway_url")
 	prometheusHost := os.Getenv("prometheus_host")
 
@@ -34,6 +41,20 @@ func main() {
 
 	if len(prometheusHost) == 0 {
 		log.Panic("env-var prometheus_host must be set")
+	}
+
+	val, err := readFile("/run/secrets/basic-auth-user")
+	if err == nil {
+		credentials.Username = val
+	} else {
+		log.Printf("Unable to read username: %s", err)
+	}
+
+	passwordVal, passErr := readFile("/run/secrets/basic-auth-password")
+	if passErr == nil {
+		credentials.Password = passwordVal
+	} else {
+		log.Printf("Unable to read password: %s", err)
 	}
 
 	inactivityDuration := time.Minute * 5
@@ -75,10 +96,18 @@ inactivity_duration: %s `, dryRun, gatewayURL, inactivityDuration)
 	client := &http.Client{}
 	for {
 
-		reconcile(client, gatewayURL, prometheusHost, prometheusPort, inactivityDuration)
+		reconcile(client, gatewayURL, prometheusHost, prometheusPort, inactivityDuration, &credentials)
 		time.Sleep(reconcileInterval)
 		fmt.Printf("\n")
 	}
+}
+
+func readFile(path string) (string, error) {
+	if _, err := os.Stat(path); err == nil {
+		data, readErr := ioutil.ReadFile(path)
+		return strings.TrimSpace(string(data)), readErr
+	}
+	return "", nil
 }
 
 func buildMetricsMap(client *http.Client, functions []requests.Function, prometheusHost string, prometheusPort int, inactivityDuration time.Duration) map[string]float64 {
@@ -127,8 +156,8 @@ func buildMetricsMap(client *http.Client, functions []requests.Function, prometh
 	return metrics
 }
 
-func reconcile(client *http.Client, gatewayURL, prometheusHost string, prometheusPort int, inactivityDuration time.Duration) {
-	functions, err := queryFunctions(client, gatewayURL)
+func reconcile(client *http.Client, gatewayURL, prometheusHost string, prometheusPort int, inactivityDuration time.Duration, credentials *Credentials) {
+	functions, err := queryFunctions(client, gatewayURL, credentials)
 
 	if err != nil {
 		log.Println(err)
@@ -142,8 +171,8 @@ func reconcile(client *http.Client, gatewayURL, prometheusHost string, prometheu
 			if v == float64(0) {
 				fmt.Printf("%s\tidle\n", fn.Name)
 
-				if val, _ := getReplicas(client, gatewayURL, fn.Name); val != nil && val.AvailableReplicas > 0 {
-					sendScaleEvent(client, gatewayURL, fn.Name, uint64(0))
+				if val, _ := getReplicas(client, gatewayURL, fn.Name, credentials); val != nil && val.AvailableReplicas > 0 {
+					sendScaleEvent(client, gatewayURL, fn.Name, uint64(0), credentials)
 				}
 
 			} else {
@@ -153,11 +182,12 @@ func reconcile(client *http.Client, gatewayURL, prometheusHost string, prometheu
 	}
 }
 
-func getReplicas(client *http.Client, gatewayURL string, name string) (*requests.Function, error) {
+func getReplicas(client *http.Client, gatewayURL string, name string, credentials *Credentials) (*requests.Function, error) {
 	item := &requests.Function{}
 	var err error
 
 	req, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/function/"+name, nil)
+	req.SetBasicAuth(credentials.Username, credentials.Password)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -175,11 +205,12 @@ func getReplicas(client *http.Client, gatewayURL string, name string) (*requests
 	return item, err
 }
 
-func queryFunctions(client *http.Client, gatewayURL string) ([]requests.Function, error) {
+func queryFunctions(client *http.Client, gatewayURL string, credentials *Credentials) ([]requests.Function, error) {
 	list := []requests.Function{}
 	var err error
 
 	req, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
+	req.SetBasicAuth(credentials.Username, credentials.Password)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -197,7 +228,7 @@ func queryFunctions(client *http.Client, gatewayURL string) ([]requests.Function
 	return list, err
 }
 
-func sendScaleEvent(client *http.Client, gatewayURL string, name string, replicas uint64) {
+func sendScaleEvent(client *http.Client, gatewayURL string, name string, replicas uint64, credentials *Credentials) {
 	if dryRun {
 		fmt.Printf("dry-run: Scaling %s to %d replicas\n", name, replicas)
 		return
@@ -214,6 +245,7 @@ func sendScaleEvent(client *http.Client, gatewayURL string, name string, replica
 	bodyReader := bytes.NewReader(bodyBytes)
 
 	req, _ := http.NewRequest(http.MethodPost, gatewayURL+"system/scale-function/"+name, bodyReader)
+	req.SetBasicAuth(credentials.Username, credentials.Password)
 
 	res, err := client.Do(req)
 
