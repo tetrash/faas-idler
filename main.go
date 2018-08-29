@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/types"
+
 	providerTypes "github.com/openfaas/faas-provider/types"
 	"github.com/openfaas/faas/gateway/metrics"
 	"github.com/openfaas/faas/gateway/requests"
@@ -29,31 +31,25 @@ type Credentials struct {
 }
 
 func main() {
+	config, configErr := types.ReadConfig()
+	if configErr != nil {
+		log.Panic(configErr.Error())
+		os.Exit(1)
+	}
 
 	flag.BoolVar(&dryRun, "dry-run", false, "use dry-run for scaling events")
 	flag.Parse()
 
 	credentials := Credentials{}
-	gatewayURL := os.Getenv("gateway_url")
 
 	client := &http.Client{}
-	version, err := getVersion(client, gatewayURL, &credentials)
+	version, err := getVersion(client, config.GatewayURL, &credentials)
 
 	if err != nil {
 		panic(err)
 	}
 
 	log.Printf("Gateway version: %s, SHA: %s\n", version.Version.Release, version.Version.SHA)
-
-	prometheusHost := os.Getenv("prometheus_host")
-
-	if len(gatewayURL) == 0 {
-		log.Panic("env-var gateway_url must be set")
-	}
-
-	if len(prometheusHost) == 0 {
-		log.Panic("env-var prometheus_host must be set")
-	}
 
 	val, err := readFile("/var/secrets/basic-auth-user")
 	if err == nil {
@@ -69,46 +65,19 @@ func main() {
 		log.Printf("Unable to read password: %s", err)
 	}
 
-	inactivityDuration := time.Minute * 5
-	if val, exists := os.LookupEnv("inactivity_duration"); exists {
-		parsedVal, parseErr := time.ParseDuration(val)
-		if parseErr != nil {
-			log.Printf("error parsing inactivity_duration: %s\n", parseErr.Error())
-		}
-		inactivityDuration = parsedVal
-	}
-
-	prometheusPort := 9090
-	if val, exists := os.LookupEnv("prometheus_port"); exists {
-		port, parseErr := strconv.Atoi(val)
-		if parseErr != nil {
-			log.Panicln(parseErr)
-		}
-		prometheusPort = port
-	}
-
-	reconcileInterval := time.Second * 30
-	if val, exists := os.LookupEnv("reconcile_interval"); exists {
-		parsedVal, parseErr := time.ParseDuration(val)
-		if parseErr != nil {
-			log.Printf("error parsing reconcile_interval: %s\n", parseErr.Error())
-		}
-		reconcileInterval = parsedVal
-	}
-
 	fmt.Printf(`dry_run: %t
 gateway_url: %s
-inactivity_duration: %s `, dryRun, gatewayURL, inactivityDuration)
+inactivity_duration: %s `, dryRun, config.GatewayURL, config.InactivityDuration)
 
-	if len(gatewayURL) == 0 {
+	if len(config.GatewayURL) == 0 {
 		fmt.Println("gateway_url (faas-netes/faas-swarm) is required.")
 		os.Exit(1)
 	}
 
 	for {
 
-		reconcile(client, gatewayURL, prometheusHost, prometheusPort, inactivityDuration, &credentials)
-		time.Sleep(reconcileInterval)
+		reconcile(client, config, &credentials)
+		time.Sleep(config.ReconcileInterval)
 		fmt.Printf("\n")
 	}
 }
@@ -121,11 +90,11 @@ func readFile(path string) (string, error) {
 	return "", nil
 }
 
-func buildMetricsMap(client *http.Client, functions []requests.Function, prometheusHost string, prometheusPort int, inactivityDuration time.Duration) map[string]float64 {
-	query := metrics.NewPrometheusQuery(prometheusHost, prometheusPort, client)
+func buildMetricsMap(client *http.Client, functions []requests.Function, config types.Config) map[string]float64 {
+	query := metrics.NewPrometheusQuery(config.PrometheusHost, config.PrometheusPort, client)
 	metrics := make(map[string]float64)
 
-	duration := fmt.Sprintf("%dm", int(inactivityDuration.Minutes()))
+	duration := fmt.Sprintf("%dm", int(config.InactivityDuration.Minutes()))
 	// duration := "5m"
 
 	for _, function := range functions {
@@ -167,16 +136,15 @@ func buildMetricsMap(client *http.Client, functions []requests.Function, prometh
 	return metrics
 }
 
-func reconcile(client *http.Client, gatewayURL, prometheusHost string, prometheusPort int, inactivityDuration time.Duration, credentials *Credentials) {
-	functions, err := queryFunctions(client, gatewayURL, credentials)
+func reconcile(client *http.Client, config types.Config, credentials *Credentials) {
+	functions, err := queryFunctions(client, config.GatewayURL, credentials)
 
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	metrics := buildMetricsMap(client, functions, prometheusHost, prometheusPort, inactivityDuration)
-
+	metrics := buildMetricsMap(client, functions, config)
 	for _, fn := range functions {
 		if fn.Labels != nil {
 			labels := *fn.Labels
@@ -192,8 +160,8 @@ func reconcile(client *http.Client, gatewayURL, prometheusHost string, prometheu
 			if v == float64(0) {
 				fmt.Printf("%s\tidle\n", fn.Name)
 
-				if val, _ := getReplicas(client, gatewayURL, fn.Name, credentials); val != nil && val.AvailableReplicas > 0 {
-					sendScaleEvent(client, gatewayURL, fn.Name, uint64(0), credentials)
+				if val, _ := getReplicas(client, config.GatewayURL, fn.Name, credentials); val != nil && val.AvailableReplicas > 0 {
+					sendScaleEvent(client, config.GatewayURL, fn.Name, uint64(0), credentials)
 				}
 
 			} else {
