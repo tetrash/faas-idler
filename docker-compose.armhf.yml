@@ -1,7 +1,7 @@
 version: "3.3"
 services:
     faas-idler:
-        image: openfaas/faas-idler:latest-dev-armhf
+        image: openfaas/faas-idler:0.1.9-armhf
         networks:
             - func_functions
         environment:
