@@ -54,7 +54,7 @@ Try using the ClusterIP/Cluster Service instead and port 8080.
 `prometheus_port` - port for Prometheus
 `inactivity_duration` - i.e. `10m` (Golang duration)
 `reconcile_interval` - i.e. `30s` (default value)
-
+`write_debug` - default `false`, set to `true` to enable verbose logging for debugging / troubleshooting
 
 * Command-line args
 
