@@ -25,6 +25,8 @@ const scaleLabel = "com.openfaas.scale.zero"
 
 var dryRun bool
 
+var writeDebug bool
+
 type Credentials struct {
 	Username string
 	Password string
@@ -40,16 +42,11 @@ func main() {
 	flag.BoolVar(&dryRun, "dry-run", false, "use dry-run for scaling events")
 	flag.Parse()
 
-	credentials := Credentials{}
-
-	client := &http.Client{}
-	version, err := getVersion(client, config.GatewayURL, &credentials)
-
-	if err != nil {
-		panic(err)
+	if val, ok := os.LookupEnv("write_debug"); ok && (val == "1" || val == "true") {
+		writeDebug = true
 	}
 
-	log.Printf("Gateway version: %s, SHA: %s\n", version.Version.Release, version.Version.SHA)
+	credentials := Credentials{}
 
 	val, err := readFile("/var/secrets/basic-auth-user")
 	if err == nil {
@@ -65,6 +62,15 @@ func main() {
 		log.Printf("Unable to read password: %s", err)
 	}
 
+	client := &http.Client{}
+	version, err := getVersion(client, config.GatewayURL, &credentials)
+
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("Gateway version: %s, SHA: %s\n", version.Version.Release, version.Version.SHA)
+
 	fmt.Printf(`dry_run: %t
 gateway_url: %s
 inactivity_duration: %s `, dryRun, config.GatewayURL, config.InactivityDuration)
@@ -75,7 +81,6 @@ inactivity_duration: %s `, dryRun, config.GatewayURL, config.InactivityDuration)
 	}
 
 	for {
-
 		reconcile(client, config, &credentials)
 		time.Sleep(config.ReconcileInterval)
 		fmt.Printf("\n")
@@ -108,7 +113,11 @@ func buildMetricsMap(client *http.Client, functions []requests.Function, config 
 
 		if len(res.Data.Result) > 0 {
 			for _, v := range res.Data.Result {
-				fmt.Println(v)
+
+				if writeDebug {
+					fmt.Println(v)
+				}
+
 				if v.Metric.FunctionName == function.Name {
 					metricValue := v.Value[1]
 					switch metricValue.(type) {
@@ -151,7 +160,9 @@ func reconcile(client *http.Client, config types.Config, credentials *Credential
 			labelValue := labels[scaleLabel]
 
 			if labelValue != "1" && labelValue != "true" {
-				log.Printf("Skip: %s due to missing label\n", fn.Name)
+				if writeDebug {
+					log.Printf("Skip: %s due to missing label\n", fn.Name)
+				}
 				continue
 			}
 		}
@@ -165,7 +176,9 @@ func reconcile(client *http.Client, config types.Config, credentials *Credential
 				}
 
 			} else {
-				fmt.Printf("%s\tactive: %f\n", fn.Name, v)
+				if writeDebug {
+					fmt.Printf("%s\tactive: %f\n", fn.Name, v)
+				}
 			}
 		}
 	}
