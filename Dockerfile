@@ -7,7 +7,7 @@ COPY vendor     vendor
 
 RUN go build -o /usr/bin/faas-idler .
 
-FROM alpine:3.7
+FROM alpine:3.8
 
 RUN addgroup -S app && adduser -S -g app app
 RUN mkdir -p /home/app
