@@ -17,8 +17,8 @@ faas-idler is implemented as a controller which polls Prometheus metrics on a re
 The build requires Docker and builds a local Docker image.
 
 ```
-TAG=0.1.7 make build
-TAG=0.1.7 make push
+TAG=0.1.9 make build
+TAG=0.1.9 make push
 ```
 
 ## Usage
