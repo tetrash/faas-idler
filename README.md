@@ -51,12 +51,16 @@ On Kubernetes the `gateway_url` needs to contain the suffix of the namespace you
 
 Try using the ClusterIP/Cluster Service instead and port 8080.
 
-`gateway_url` - URL for faas-provider
-`prometheus_host` - host for Prometheus
-`prometheus_port` - port for Prometheus
-`inactivity_duration` - i.e. `10m` (Golang duration)
-`reconcile_interval` - i.e. `30s` (default value)
-`write_debug` - default `false`, set to `true` to enable verbose logging for debugging / troubleshooting
+| env_var               | description                                                 |
+| --------------------- |----------------------------------------------------------   |
+| `gateway_url`         | The URL for the API gateway i.e. http://gateway:8080 or http://gateway.openfaas:8080 for Kubernetes       |
+| `prometheus_host`     | host for Prometheus |
+| `prometheus_port`     | port for Prometheus |
+| `inactivity_duration` | i.e. `10m` (Golang duration) |
+| `reconcile_interval`  | i.e. `30s` (default value) |
+| `secret_mount_path`   | default `/var/secrets/`, path from which `basic-auth-user` and `basic-auth-password` files are read |
+| `write_debug`         | default `false`, set to `true` to enable verbose logging for debugging / troubleshooting |
+
 
 * Command-line args
 

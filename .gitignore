@@ -12,3 +12,4 @@
 *.out
 
 faas-idler
+basic-auth-*

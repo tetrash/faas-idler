@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -48,16 +49,19 @@ func main() {
 
 	credentials := Credentials{}
 
-	val, err := readFile("/var/secrets/basic-auth-user")
-	if err == nil {
+	secretMountPath := "/var/secrets/"
+	if val, ok := os.LookupEnv("secret_mount_path"); ok && len(val) > 0 {
+		secretMountPath = val
+	}
+
+	if val, err := readFile(path.Join(secretMountPath, "basic-auth-user")); err == nil {
 		credentials.Username = val
 	} else {
 		log.Printf("Unable to read username: %s", err)
 	}
 
-	passwordVal, passErr := readFile("/var/secrets/basic-auth-password")
-	if passErr == nil {
-		credentials.Password = passwordVal
+	if val, err := readFile(path.Join(secretMountPath, "basic-auth-password")); err == nil {
+		credentials.Password = val
 	} else {
 		log.Printf("Unable to read password: %s", err)
 	}
