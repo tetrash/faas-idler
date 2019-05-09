@@ -1,6 +1,6 @@
 # faas-idler
 
-[![Build Status](https://travis-ci.org/openfaas-incubator/faas-idler.svg?branch=master)]
+[![Build Status](https://travis-ci.org/openfaas-incubator/faas-idler.svg?branch=master)](https://travis-ci.org/openfaas-incubator/faas-idler)
 
 Scale OpenFaaS functions to zero replicas after a period of inactivity
 
