@@ -27,25 +27,25 @@ TAG=0.1.9 make push
 
 Swarm:
 
-```
+```sh
 docker stack deploy func -c docker-compose.yml
 ```
 
 Kubernetes
 
-```
+```sh
 kubectl apply -f faas-idler-dep.yml
 ```
 
 Now decorate some functions with the label: `com.openfaas.scale.zero: "true"` and watch the idler scale them to zero. You should also change the `-dry-run` flag to `false`. For example:
 
-```
+```sh
 faas-cli store deploy figlet --label "com.openfaas.scale.zero=true"
 ```
 
-Or if using the operator CRD:
+Or if using the [openfaas-operator](https://github.com/openfaas-incubator/openfaas-operator) and CRD:
 
-```
+```yaml
 ...
 spec:
   labels:
@@ -66,8 +66,8 @@ Try using the ClusterIP/Cluster Service instead and port 8080.
 | `gateway_url`         | The URL for the API gateway i.e. http://gateway:8080 or http://gateway.openfaas:8080 for Kubernetes       |
 | `prometheus_host`     | host for Prometheus |
 | `prometheus_port`     | port for Prometheus |
-| `inactivity_duration` | i.e. `10m` (Golang duration) |
-| `reconcile_interval`  | i.e. `30s` (default value) |
+| `inactivity_duration` | i.e. `15m` (Golang duration) |
+| `reconcile_interval`  | i.e. `1m` (default value) |
 | `secret_mount_path`   | default `/var/secrets/`, path from which `basic-auth-user` and `basic-auth-password` files are read |
 | `write_debug`         | default `false`, set to `true` to enable verbose logging for debugging / troubleshooting |
 
@@ -84,7 +84,7 @@ How it works:
 
 You can view the logs to show reconciliation in action.
 
-```
+```sh
 kubectl logs -n openfaas -f deploy/faas-idler
 ```
 
