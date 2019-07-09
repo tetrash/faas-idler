@@ -37,10 +37,20 @@ Kubernetes
 kubectl apply -f faas-idler-dep.yml
 ```
 
-Now decorate some functions with the label: `com.openfaas.scale.zero: true` and watch the idler scale them to zero. You should also change the `-dry-run` flag to `false`. For example:
+Now decorate some functions with the label: `com.openfaas.scale.zero: "true"` and watch the idler scale them to zero. You should also change the `-dry-run` flag to `false`. For example:
 
 ```
 faas-cli store deploy figlet --label "com.openfaas.scale.zero=true"
+```
+
+Or if using the operator CRD:
+
+```
+...
+spec:
+  labels:
+    com.openfaas.scale.zero: "true"
+...
 ```
 
 ### Configuration
