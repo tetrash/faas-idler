@@ -17,25 +17,25 @@ faas-idler is implemented as a controller which polls Prometheus metrics on a re
 The build requires Docker and builds a local Docker image.
 
 ```
-TAG=0.1.9 make build
-TAG=0.1.9 make push
+TAG=0.2.0 make build
+TAG=0.2.0 make push
 ```
 
 ## Usage
 
 ### Quick start
 
-Swarm:
+#### Swarm:
 
 ```sh
 docker stack deploy func -c docker-compose.yml
 ```
 
-Kubernetes
+#### Kubernetes
 
-```sh
-kubectl apply -f faas-idler-dep.yml
-```
+The faas-idler is installed as part of the [helm chart](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas), make sure that you pass the argument "--set faasIdler.dryRun=false" if you want the idler to go live and make changes to the API.
+
+#### Activating a function for scale to zero
 
 Now decorate some functions with the label: `com.openfaas.scale.zero: "true"` and watch the idler scale them to zero. You should also change the `-dry-run` flag to `false`. For example:
 

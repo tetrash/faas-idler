@@ -8,7 +8,7 @@ COPY vendor     vendor
 RUN apk --no-cache add build-base && \
     go build -o /usr/bin/faas-idler .
 
-FROM alpine:3.8
+FROM alpine:3.10
 
 RUN addgroup -S app && adduser -S -g app app
 RUN mkdir -p /home/app
