@@ -22,3 +22,11 @@ ci-arm64-build:
 .PHONY: ci-arm64-push
 ci-arm64-push:
 	docker push openfaas/faas-idler:${TAG}-arm64
+
+.PHONY: ci-ppc64le-build
+ci-ppc64le-build:
+	docker build -t openfaas/faas-idler:${TAG}-ppc64le . -f Dockerfile.ppc64le
+
+.PHONY: ci-ppc64le-push
+ci-ppc64le-push:
+	docker push openfaas/faas-idler:${TAG}-ppc64le
