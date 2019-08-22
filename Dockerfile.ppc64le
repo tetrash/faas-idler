@@ -1,5 +1,7 @@
 FROM golang:1.11-alpine AS builder
 
+ENV CGO_ENABLED=0
+
 WORKDIR /go/src/github.com/openfaas-incubator/faas-idler
 
 COPY main.go    main.go
