@@ -117,7 +117,7 @@ func buildMetricsMap(client *http.Client, functions []providerTypes.FunctionStat
 			continue
 		}
 
-		log.Println(res, function.InvocationCount)
+		// log.Println(res, function.InvocationCount)
 		if len(res.Data.Result) > 0 || function.InvocationCount == 0 {
 
 			if _, exists := metrics[function.Name]; !exists {
