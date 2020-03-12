@@ -108,8 +108,12 @@ func buildMetricsMap(client *http.Client, functions []providerTypes.FunctionStat
 	// duration := "5m"
 
 	for _, function := range functions {
-		querySt := url.QueryEscape(`sum(rate(gateway_function_invocation_started{function_name="` + function.Name + `"}[` + duration + `])) by (function_name)`)
-		fmt.Println(querySt)
+		querySt := url.QueryEscape(fmt.Sprintf(
+			`sum(rate(gateway_function_invocation_started{function_name="%s"}[%s])) by (function_name)`,
+			function.Name,
+			duration))
+
+		log.Printf("Querying: %s\n", querySt)
 
 		res, err := query.Fetch(querySt)
 		if err != nil {
@@ -127,7 +131,7 @@ func buildMetricsMap(client *http.Client, functions []providerTypes.FunctionStat
 			for _, v := range res.Data.Result {
 
 				if writeDebug {
-					fmt.Println(v)
+					log.Println(v)
 				}
 
 				if v.Metric.FunctionName == function.Name {
@@ -176,7 +180,7 @@ func reconcile(client *http.Client, config types.Config, credentials *Credential
 
 		if v, found := metrics[fn.Name]; found {
 			if v == float64(0) {
-				fmt.Printf("%s\tidle\n", fn.Name)
+				log.Printf("%s\tidle\n", fn.Name)
 
 				if val, _ := getReplicas(client, config.GatewayURL, fn.Name, credentials); val != nil && val.AvailableReplicas > 0 {
 					sendScaleEvent(client, config.GatewayURL, fn.Name, uint64(0), credentials)
@@ -184,7 +188,7 @@ func reconcile(client *http.Client, config types.Config, credentials *Credential
 
 			} else {
 				if writeDebug {
-					fmt.Printf("%s\tactive: %f\n", fn.Name, v)
+					log.Printf("%s\tactive: %f\n", fn.Name, v)
 				}
 			}
 		}
@@ -239,7 +243,7 @@ func queryFunctions(client *http.Client, gatewayURL string, credentials *Credent
 
 func sendScaleEvent(client *http.Client, gatewayURL string, name string, replicas uint64, credentials *Credentials) {
 	if dryRun {
-		fmt.Printf("dry-run: Scaling %s to %d replicas\n", name, replicas)
+		log.Printf("dry-run: Scaling %s to %d replicas\n", name, replicas)
 		return
 	}
 
