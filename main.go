@@ -108,7 +108,7 @@ func buildMetricsMap(client *http.Client, functions []providerTypes.FunctionStat
 	// duration := "5m"
 
 	for _, function := range functions {
-		querySt := url.QueryEscape(`sum(rate(function_requests_started_total{function_name="` + function.Name + `"}[` + duration + `])) by (function_name)`)
+		querySt := url.QueryEscape(`sum(rate(gateway_function_invocation_started{function_name="` + function.Name + `"}[` + duration + `])) by (function_name)`)
 		fmt.Println(querySt)
 
 		res, err := query.Fetch(querySt)
