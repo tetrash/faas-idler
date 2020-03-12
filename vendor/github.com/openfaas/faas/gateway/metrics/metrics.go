@@ -13,10 +13,11 @@ import (
 
 // MetricOptions to be used by web handlers
 type MetricOptions struct {
-	GatewayFunctionInvocation *prometheus.CounterVec
-	GatewayFunctionsHistogram *prometheus.HistogramVec
-	ServiceReplicasGauge      *prometheus.GaugeVec
-	ServiceMetrics            *ServiceMetricOptions
+	GatewayFunctionInvocation        *prometheus.CounterVec
+	GatewayFunctionsHistogram        *prometheus.HistogramVec
+	GatewayFunctionInvocationStarted *prometheus.CounterVec
+	ServiceReplicasGauge             *prometheus.GaugeVec
+	ServiceMetrics                   *ServiceMetricOptions
 }
 
 // ServiceMetricOptions provides RED metrics
@@ -49,16 +50,19 @@ func BuildMetricsOptions() MetricOptions {
 
 	gatewayFunctionInvocation := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "gateway_function_invocation_total",
-			Help: "Individual function metrics",
+			Namespace: "gateway",
+			Subsystem: "function",
+			Name:      "invocation_total",
+			Help:      "Function metrics",
 		},
 		[]string{"function_name", "code"},
 	)
 
 	serviceReplicas := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "gateway_service_count",
-			Help: "Docker service replicas",
+			Namespace: "gateway",
+			Name:      "service_count",
+			Help:      "Service replicas",
 		},
 		[]string{"function_name"},
 	)
@@ -81,16 +85,27 @@ func BuildMetricsOptions() MetricOptions {
 		[]string{"method", "path", "status"},
 	)
 
+	gatewayFunctionInvocationStarted := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "gateway",
+			Subsystem: "function",
+			Name:      "invocation_started",
+			Help:      "The total number of function HTTP requests started.",
+		},
+		[]string{"function_name"},
+	)
+
 	serviceMetricOptions := &ServiceMetricOptions{
 		Counter:   counter,
 		Histogram: histogram,
 	}
 
 	metricsOptions := MetricOptions{
-		GatewayFunctionsHistogram: gatewayFunctionsHistogram,
-		GatewayFunctionInvocation: gatewayFunctionInvocation,
-		ServiceReplicasGauge:      serviceReplicas,
-		ServiceMetrics:            serviceMetricOptions,
+		GatewayFunctionsHistogram:        gatewayFunctionsHistogram,
+		GatewayFunctionInvocation:        gatewayFunctionInvocation,
+		ServiceReplicasGauge:             serviceReplicas,
+		ServiceMetrics:                   serviceMetricOptions,
+		GatewayFunctionInvocationStarted: gatewayFunctionInvocationStarted,
 	}
 
 	return metricsOptions

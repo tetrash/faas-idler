@@ -26,26 +26,23 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:483b9a21c7fe85d58a544abfa553dba6828768b7211156da28c18b3950d1a749"
+  digest = "1:bae841e35cdec654dd6cbb45e2e85574b63a5291547470ce38ac6466889d599b"
   name = "github.com/openfaas/faas"
-  packages = [
-    "gateway/metrics",
-    "gateway/requests",
-  ]
+  packages = ["gateway/metrics"]
   pruneopts = "UT"
-  revision = "80b6976c106370a7081b2f8e9099a6ea9638e1f3"
-  version = "0.18.10"
+  revision = "37bf15e5088a3377b5070f7190baf862219f3326"
+  version = "0.18.12"
 
 [[projects]]
-  digest = "1:5ef12e7154e453638378dfc853ca53d2d775aee2d7a6da535df639d5933b39c7"
+  digest = "1:9312657587d3b6ba6d41b079ade02d2fb01437c264ad8affcd75754c79e6c4ef"
   name = "github.com/openfaas/faas-provider"
   packages = [
     "auth",
     "types",
   ]
   pruneopts = "UT"
-  revision = "d6579bdcf7c85f4d01f398d65ea0cab37e9633d0"
-  version = "0.13.3"
+  revision = "6f6451c772dd13cab302915e203377a31616e1b7"
+  version = "v0.15.0"
 
 [[projects]]
   digest = "1:d14a5f4bfecf017cb780bdde1b6483e5deb87e12c332544d2c430eda58734bcb"
@@ -97,7 +94,6 @@
   input-imports = [
     "github.com/openfaas/faas-provider/types",
     "github.com/openfaas/faas/gateway/metrics",
-    "github.com/openfaas/faas/gateway/requests",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
